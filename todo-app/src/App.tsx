@@ -1,65 +1,77 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TodoList from "./TodoList";
+import type { Task } from "./types";
 
 function App() {
-  console.log("4 -> APP REVOKE");
-  const [tasks, setTasks] = useState<string[]>([]);
+    const [tasks, setTasks] = useState<Task[]>(() => {
+        const savedTasks = localStorage.getItem("tasks");
+        return savedTasks ? JSON.parse(savedTasks) : [];
+    });
 
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingTask, setEditingTask] = useState("");
+    useEffect(() => {
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+    }, [tasks]);
 
-  function addTask(task: string) {
-    console.log(task);
-    if (task.trim() === "") {
-      return;
-    }
-      const newTasks = [...tasks, task];
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [editingTask, setEditingTask] = useState("");
+    const [editingDeadline, setEditingDeadline] = useState("");
 
-      console.log("New tasks:", newTasks);
-    
-      setTasks(newTasks);
-  }
+    function addTask(task: Task) {
+        if (task.title.trim() === "") {
+            return;
+        }
 
-  function deleteTask(index: number) {
-    console.log("DELETED TASK",tasks[index]);
-    setTasks(tasks.filter((_, i) => i !== index));
-  }
-
-  function editTask(index: number) {
-    setEditingIndex(index);
-    setEditingTask(tasks[index]);
-  }
-
-  function saveTask() {
-    if (editingTask.trim() === "") {
-      return;
+        setTasks([...tasks, task]);
     }
 
-    if (editingIndex === null) {
-      return;
+    function deleteTask(index: number) {
+        setTasks(tasks.filter((_, i) => i !== index));
     }
 
-    const newTasks = [...tasks];
-    newTasks[editingIndex] = editingTask;
+    function editTask(index: number) {
+        setEditingIndex(index);
+        setEditingTask(tasks[index].title);
+        setEditingDeadline(tasks[index].deadline);
+    }
 
-    setTasks(newTasks);
+    function saveTask() {
+        if (editingTask.trim() === "") {
+            return;
+        }
 
-    setEditingIndex(null);
-    setEditingTask("");
-  }
+        if (editingIndex === null) {
+            return;
+        }
 
-  return (
-    <TodoList
-      tasks={tasks}
-      addTask={addTask}
-      deleteTask={deleteTask}
-      editTask={editTask}
-      editingIndex={editingIndex}
-      editingTask={editingTask}
-      setEditingTask={setEditingTask}
-      saveTask={saveTask}
-    />
-  );
+        const newTasks = [...tasks];
+
+        newTasks[editingIndex] = {
+            ...newTasks[editingIndex],
+            title: editingTask,
+            deadline: editingDeadline
+        };
+
+        setTasks(newTasks);
+
+        setEditingIndex(null);
+        setEditingTask("");
+        setEditingDeadline("");
+    }
+
+    return (
+        <TodoList
+            tasks={tasks}
+            addTask={addTask}
+            deleteTask={deleteTask}
+            editTask={editTask}
+            editingIndex={editingIndex}
+            editingTask={editingTask}
+            setEditingTask={setEditingTask}
+            editingDeadline={editingDeadline}
+            setEditingDeadline={setEditingDeadline}
+            saveTask={saveTask}
+        />
+    );
 }
 
 export default App;

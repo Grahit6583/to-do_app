@@ -38,24 +38,77 @@ h2 {
 
 .task {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-bottom: 15px;
+  gap: 6px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #444;
+}
+
+.task-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.task-deadline {
+  display: flex;
+  gap: 10px;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-  gap: 5px;
+  font-size: 12px;
+  color: #aaa;
 }
 
-.task span {
-  max-width: 350px;
+.task-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.task-title {
+  font-size: 16px;
   overflow-wrap: anywhere;
-  word-break: break-word;
+  text-align: left;
 }
 
-.task button {
+.task-actions {
+  display: flex;
+  gap: 5px;
   flex-shrink: 0;
+}
+
+.task-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .add-task {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.task-input-group {
+  display: flex;
+  align-items: center;
   gap: 10px;
+}
+
+.task-input-group input {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-input-group svg {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.add-task > input[type="datetime-local"] {
+  width: 100%;
+  box-sizing: border-box;
 }

@@ -1,10 +1,16 @@
+import { CalendarClock } from "lucide-react";
+import { useState } from "react";
+import type { Task } from "./types";
+
 type TodoListProps = {
-    tasks: string[];
-    addTask: (task: string) => void;
+    tasks: Task[];
+    addTask: (task: Task) => void;
     deleteTask: (index: number) => void;
     editTask: (index: number) => void;
     editingIndex: number | null;
     editingTask: string;
+    editingDeadline: string;
+    setEditingDeadline: (deadline: string) => void;
     setEditingTask: (task: string) => void;
     saveTask: () => void;
 };
@@ -16,19 +22,40 @@ function TodoList({
     editTask,
     editingIndex,
     editingTask,
+    editingDeadline,
     setEditingTask,
+    setEditingDeadline,
     saveTask,
 }: TodoListProps) {
+
+    const [showDeadline, setShowDeadline] = useState(false);
+    const [deadline, setDeadline] = useState("");
+
     return (
         <div className="todo-container">
-            <h1>My To-Do List</h1>
+            <h1>My Todo App</h1>
 
             <div className="add-task">
-                <input
-                    type="text"
-                    placeholder="Enter a task"
-                    id="taskInput"
-                />
+                <div className="task-input-group">
+                    <input
+                        type="text"
+                        placeholder="Enter a task"
+                        id="taskInput"
+                    />
+
+                    <CalendarClock
+                        size={22}
+                        onClick={() => setShowDeadline(!showDeadline)}
+                    />
+                </div>
+
+                {showDeadline && (
+                    <input
+                        type="datetime-local"
+                        value={deadline}
+                        onChange={(e) => setDeadline(e.target.value)}
+                    />
+                )}
 
                 <button
                     onClick={() => {
@@ -36,46 +63,75 @@ function TodoList({
                             "taskInput"
                         ) as HTMLInputElement;
 
-                        addTask(input.value);
+                        addTask({
+                            title: input.value,
+                            deadline: deadline
+                        });
+
                         input.value = "";
+                        setDeadline("");
+                        setShowDeadline(false);
                     }}
                 >
                     Add Task
                 </button>
             </div>
 
-            {/* Task List */}
             <h2>Tasks</h2>
+
 
             {tasks.map((task, index) => (
                 <div key={index} className="task">
+
                     {editingIndex === index ? (
-                        <>
+                        <div className="task-edit">
                             <input
                                 type="text"
                                 value={editingTask}
                                 onChange={(e) => setEditingTask(e.target.value)}
                             />
 
-                            <button onClick={saveTask}>
-                                Save
-                            </button>
-                        </>
+                            <input
+                                type="datetime-local"
+                                value={editingDeadline}
+                                onChange={(e) => setEditingDeadline(e.target.value)}
+                            />
+
+                            <button onClick={saveTask}>Save</button>
+                        </div>
                     ) : (
-                        <>
-                            <span>{task}</span>
+                        <div className="task-content">
 
-                            <button onClick={() => editTask(index)}>
-                                Edit
-                            </button>
+                            {task.deadline && (
+                                <div className="task-deadline">
+                                    <span>
+                                        {new Date(task.deadline).toLocaleDateString("en-IN")}
+                                    </span>
 
-                            <button onClick={() => deleteTask(index)}>
-                                Delete
-                            </button>
-                        </>
+                                    <span>
+                                        {new Date(task.deadline).toLocaleTimeString("en-IN", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true
+                                        })}
+                                    </span>
+                                </div>
+                            )}
+
+                            <div className="task-details">
+                                <span className="task-title">{task.title}</span>
+
+                                <div className="task-actions">
+                                    <button onClick={() => editTask(index)}>Edit</button>
+                                    <button onClick={() => deleteTask(index)}>Delete</button>
+                                </div>
+                            </div>
+
+                        </div>
                     )}
                 </div>
             ))}
+
         </div>
     );
 }
