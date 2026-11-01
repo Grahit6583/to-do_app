@@ -1,6 +1,15 @@
 import { CalendarClock } from "lucide-react";
 import { useState } from "react";
 import type { Task } from "./types";
+import { translateText } from "./services/translationService";
+
+const languages = [
+    { name: "Hindi", code: "hi" },
+    { name: "French", code: "fr" },
+    { name: "Spanish", code: "es" },
+    { name: "German", code: "de" },
+    { name: "Japanese", code: "ja" }
+];
 
 type TodoListProps = {
     tasks: Task[];
@@ -30,6 +39,14 @@ function TodoList({
 
     const [showDeadline, setShowDeadline] = useState(false);
     const [deadline, setDeadline] = useState("");
+    const [selectedTaskIndex, setSelectedTaskIndex] = useState<number | null>(null);
+
+    const [translations, setTranslations] = useState<Record<number, string>>({});
+
+    const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
+    const [showAddLanguage, setShowAddLanguage] = useState(false);
+    const [addTranslation, setAddTranslation] = useState("");
+    const [addLoading, setAddLoading] = useState(false);
 
     return (
         <div className="todo-container">
@@ -57,21 +74,96 @@ function TodoList({
                     />
                 )}
 
+                {!addTranslation ? (
+                    <>
+                        <button
+                            disabled={addLoading}
+                            onClick={() => setShowAddLanguage(!showAddLanguage)}
+                        >
+                            {addLoading ? "Translating..." : "Translate"}
+                        </button>
+
+                        {showAddLanguage && (
+                            <select
+                                defaultValue=""
+                                onChange={async (e) => {
+                                    const targetLanguage = e.target.value;
+
+                                    if (!targetLanguage) return;
+
+                                    const input = document.getElementById(
+                                        "taskInput"
+                                    ) as HTMLInputElement;
+
+                                    if (!input.value.trim()) {
+                                        alert("Please enter a task first.");
+                                        return;
+                                    }
+
+                                    setAddLoading(true);
+
+                                    try {
+                                        const result = await translateText(
+                                            input.value,
+                                            targetLanguage
+                                        );
+
+                                        setAddTranslation(result);
+                                        setShowAddLanguage(false);
+                                    } catch (error) {
+                                        console.error(error);
+                                        alert("Translation failed. Please try again.");
+                                    } finally {
+                                        setAddLoading(false);
+                                    }
+                                }}
+                            >
+                                <option value="" disabled>Select language</option>
+
+                                {languages.map((language) => (
+                                    <option key={language.code} value={language.code}>
+                                        {language.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </>
+                ) : (
+                    <div className="task-translation">
+                        <p>{addTranslation}</p>
+
+                        <button onClick={() => setAddTranslation("")}>
+                            ×
+                        </button>
+                    </div>
+                )}
+
+
                 <button
                     onClick={() => {
-                        const input = document.getElementById(
-                            "taskInput"
-                        ) as HTMLInputElement;
+    const input = document.getElementById(
+        "taskInput"
+    ) as HTMLInputElement;
 
-                        addTask({
-                            title: input.value,
-                            deadline: deadline
-                        });
+    if (!input.value.trim()) {
+        alert("Please enter a task.");
+        return;
+    }
 
-                        input.value = "";
-                        setDeadline("");
-                        setShowDeadline(false);
-                    }}
+    addTask({
+        title: input.value.trim(),
+        deadline: deadline
+    });
+
+    input.value = "";
+    setDeadline("");
+    setShowDeadline(false);
+
+    // Reset translation UI
+    setAddTranslation("");
+    setShowAddLanguage(false);
+    setAddLoading(false);
+}}
                 >
                     Add Task
                 </button>
@@ -119,9 +211,84 @@ function TodoList({
                             )}
 
                             <div className="task-details">
-                                <span className="task-title">{task.title}</span>
+                                <div>
+                                    <span className="task-title">{task.title}</span>
+
+                                    {translations[index] && (
+                                        <div className="task-translation">
+                                            <p>{translations[index]}</p>
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div className="task-actions">
+                                    {!translations[index] ? (
+                                        <>
+                                            <button
+                                                disabled={loadingIndex === index}
+                                                onClick={() => {
+                                                    setSelectedTaskIndex(
+                                                        selectedTaskIndex === index ? null : index
+                                                    );
+                                                }}
+                                            >
+                                                {loadingIndex === index ? "Translating..." : "Translate"}
+                                            </button>
+
+                                            {selectedTaskIndex === index && (
+                                                <select
+                                                    defaultValue=""
+                                                    onChange={async (e) => {
+                                                        const targetLanguage = e.target.value;
+
+                                                        if (!targetLanguage) return;
+
+                                                        setLoadingIndex(index);
+
+                                                        try {
+                                                            const translatedText = await translateText(
+                                                                task.title,
+                                                                targetLanguage
+                                                            );
+
+                                                            setTranslations((previous) => ({
+                                                                ...previous,
+                                                                [index]: translatedText
+                                                            }));
+
+                                                            setSelectedTaskIndex(null);
+                                                        } catch (error) {
+                                                            console.error(error);
+                                                            alert("Translation failed. Please try again.");
+                                                        } finally {
+                                                            setLoadingIndex(null);
+                                                        }
+                                                    }}
+                                                >
+                                                    <option value="" disabled>Select language</option>
+
+                                                    {languages.map((language) => (
+                                                        <option key={language.code} value={language.code}>
+                                                            {language.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <button
+                                            onClick={() => {
+                                                setTranslations((previous) => {
+                                                    const updated = { ...previous };
+                                                    delete updated[index];
+                                                    return updated;
+                                                });
+                                            }}
+                                        >
+                                            ×
+                                        </button>
+                                    )}
+
                                     <button onClick={() => editTask(index)}>Edit</button>
                                     <button onClick={() => deleteTask(index)}>Delete</button>
                                 </div>
