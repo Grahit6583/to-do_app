@@ -141,29 +141,29 @@ function TodoList({
 
                 <button
                     onClick={() => {
-    const input = document.getElementById(
-        "taskInput"
-    ) as HTMLInputElement;
+                        const input = document.getElementById(
+                            "taskInput"
+                        ) as HTMLInputElement;
 
-    if (!input.value.trim()) {
-        alert("Please enter a task.");
-        return;
-    }
+                        if (!input.value.trim()) {
+                            alert("Please enter a task.");
+                            return;
+                        }
 
-    addTask({
-        title: input.value.trim(),
-        deadline: deadline
-    });
+                        addTask({
+                            title: input.value.trim(),
+                            deadline: deadline
+                        });
 
-    input.value = "";
-    setDeadline("");
-    setShowDeadline(false);
+                        input.value = "";
+                        setDeadline("");
+                        setShowDeadline(false);
 
-    // Reset translation UI
-    setAddTranslation("");
-    setShowAddLanguage(false);
-    setAddLoading(false);
-}}
+                        // Reset translation UI
+                        setAddTranslation("");
+                        setShowAddLanguage(false);
+                        setAddLoading(false);
+                    }}
                 >
                     Add Task
                 </button>
